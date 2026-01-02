@@ -10,11 +10,6 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 warnings.filterwarnings('ignore', category=RuntimeWarning, module='tensorflow')
 
 
-gpus = tf.config.experimental.list_physical_devices('GPU')
-if gpus:
-    for gpu in gpus:
-        tf.config.experimental.set_memory_growth(gpu, True)
-
 
 from process_sample_data import  load_list_from_text, report_column_name, generate_statistics, generate_factor_model_params_dict
 from solve_ML import get_predict_data, evaluation_predict
@@ -51,8 +46,6 @@ code_item_list = [f'stock_{code}' for code in code_list]
 
 report_col_name = False
 # report_col_name = True
-if report_col_name:
-    report_column_name(insample_data_folder_path, code_list)
 
 
 
@@ -206,6 +199,7 @@ if construct_asset_pool:
         else:
             select_asset_list = select_asset(basis_param_dict, prediction_model_list, code_item_list, cal_forward_info, code_split_node_list)
             print(select_asset_list)
+
 
 
 
