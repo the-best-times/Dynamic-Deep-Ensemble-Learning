@@ -71,10 +71,7 @@ def select_asset(basis_param_dict, prediction_model_list, code_list, cal_forward
     total_periods_num = len(date_split_node_list) - 1
     weight_historical = structural_basis_param_dict['weight_historical']
     target_score = structural_basis_param_dict['investment_preference_param']['target_score']
-    asset_select_param_dict = structural_basis_param_dict['asset_select_param_dict']
-    select_method = asset_select_param_dict['select_method']
-    num_select = asset_select_param_dict['num_select']
-    indicator = asset_select_param_dict['indicator']
+    
 
 
     all_forward_data_dict_dict = {}
@@ -130,10 +127,7 @@ def get_eval_result(basis_param_dict, prediction_model_list, code_list, cal_forw
 
     structural_basis_param_dict = basis_param_dict['structural_basis_param_dict']
     asset_select_param_dict = structural_basis_param_dict['asset_select_param_dict']
-    total_model_num = structural_basis_param_dict['total_model_num']
-    remove_model_prob = structural_basis_param_dict['remove_model_prob']
-    date_split_node_list = structural_basis_param_dict['date_split_node_list']
-    total_periods_num = len(date_split_node_list) - 1
+   
 
 
     all_forward_data_dict_dict = {}
@@ -296,16 +290,7 @@ def process_asset_select(performance_list, code_list, asset_select_param_dict):
     indicator = asset_select_param_dict['indicator']
     if indicator == 'traditional':
         key_ =  ['traditional_Sharpe_ratio', 'traditional_Sortino_ratio']
-    elif indicator == 'ESG_adjusted':
-        key_ = ['ESG_adjusted_Sharpe_ratio', 'ESG_adjusted_Sortino_ratio']
-    elif indicator == 'ESG_Sharpe':
-        key_ = ['ESG_adjusted_Sharpe_ratio']
-    elif indicator == 'ESG_Sortino':
-        key_ = ['ESG_adjusted_Sortino_ratio']
-    elif indicator == 'traditional_Sharpe':
-        key_ = ['traditional_Sharpe_ratio']
-    elif indicator == 'mean':
-        key_ = ['mean_return', 'mean_ESG']
+
 
 
 
@@ -447,8 +432,7 @@ def get_forward_looking_info_result(basis_param_dict, prediction_model_list, cod
                 for data_property in data_property_list:
                     print(f'Calculating the {data_property} for {code_item}...')
 
-                    ML_model_saved_dir = os.path.join(results_saved_folder_path, f'Models_saved_{model_group}', f'nodes_{total_periods_num}_models_{total_model_num}_removeProb_{remove_model_prob}',
-                                                      f'result_num_{cal_count}', code_item, data_property)
+                    ML_model_saved_dir = os.path.join(f'result_num_{cal_count}', code_item, data_property)
                     if os.path.exists(ML_model_saved_dir):
                         shutil.rmtree(ML_model_saved_dir)
 
@@ -461,28 +445,9 @@ def get_forward_looking_info_result(basis_param_dict, prediction_model_list, cod
 
                     Model_info_saved = os.path.join(saved_dir, 'Model_info', code_item, f'Model_info_{data_property}.txt')
                     keys_to_save = ['model_list', 'model_age_list', 'weights_list']
-                    save_model_info_to_txt(model_info_dict, Model_info_saved, keys_to_save)
-
-
-                    try:
-                        shutil.rmtree(ML_model_saved_dir)
-                    except Exception as e:
-                        print(f"Error deleting {ML_model_saved_dir}: {e}")
-
-
-                    del last_period_model_info_dict, model_info_dict
-
 
                 save_to_excel(forward_info_file_path, code_item, forward_data_dict, mode='a')
                 save_to_excel(real_observed_info_file_path, code_item, real_observed_data_dict, mode='a')
-
-
-                del forward_data_dict, real_observed_data_dict
-
-                pbar.update(1)
-                gc.collect()
-
-
         return None
     else:
 
@@ -633,58 +598,6 @@ def evaluate_forward_looking_info(basis_param_dict, prediction_model_list, forwa
 
 
 
-
-def plot_forward_looking_info(basis_param_dict, forward_data_dict_dict, real_observed_data_dict_dict):
-
-    code_list_need_plot = ['stock_300274']
-
-    data_property_list = basis_param_dict['structural_basis_param_dict']['data_property_list']
-
-    for code_item in code_list_need_plot:
-        try:
-            forward_data_dict = forward_data_dict_dict[code_item]
-            real_observed_data_dict = real_observed_data_dict_dict[code_item]
-
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 8))
-
-
-            for data_property in data_property_list:
-                forward_data = np.array(forward_data_dict[data_property])
-                real_observed_data = np.array(real_observed_data_dict[data_property])
-
-                if data_property == 'return':
-
-                    ax1.grid(axis='x')
-                    ax1.plot(real_observed_data, '--o', label='Real Return', color='blue')
-                    ax1.plot(forward_data, '-o', label='Predicted Return', color='green')
-                    ax1.set_title(f'Return for {code_item}')
-                    ax1.set_xlabel('Time')
-                    ax1.set_ylabel('Return')
-                    ax1.legend()
-
-                elif data_property == 'ESG':
-
-                    ax2.grid(axis='x')
-                    ax2.plot(real_observed_data, '--o', label='Real ESG score', color='blue')
-                    ax2.plot(forward_data, '-o', label='Predicted ESG score', color='green')
-                    ax2.set_title(f'ESG for {code_item}')
-                    ax2.set_xlabel('Time')
-                    ax2.set_ylabel('ESG Score')
-                    ax2.legend()
-
-
-            plt.tight_layout()
-            plt.show()
-
-        except KeyError as e:
-            print(f"Key error: {e}. Skipping stock code: {code_item}.")
-        except Exception as e:
-            print(f"An error occurred for stock code: {code_item}: {e}")
-
-
-
-
-
 def generate_Big_many_models_predict_results(basis_param_dict, prediction_model_list, ML_model_saved_dir, running_info_saved_dir, code_item, data_property):
 
     path_basis_dict = basis_param_dict['path_basis_dict']
@@ -726,18 +639,6 @@ def generate_Big_many_models_predict_results(basis_param_dict, prediction_model_
             'weights_list': model_info_dict[f'periods_{current_period}']['weights_list'].copy()
         }
         current_period_info_dict['weights_list'] = np.array(current_period_info_dict['weights_list'])
-
-
-        ML_predict_param_dict = predict_param_dict_dict[f'periods_{current_period}']
-
-        result_data_dict = generate_single_period_predict_results(ML_model_saved_dir, running_info_saved_dir, ML_predict_param_dict, code_item, data_property,
-                                                                  total_periods_num, total_model_num, current_period_info_dict['model_list'],
-                                                                  current_period_info_dict['model_age_list'], current_period)
-
-
-        model_info_dict[f'periods_{current_period}']['prediction_results'] = result_data_dict['predict_data']
-        model_info_dict[f'periods_{current_period}']['observed_data'] = result_data_dict['observed_data']
-
         if current_period < total_periods_num - 1:
             if total_model_num > 1:
 
@@ -751,13 +652,6 @@ def generate_Big_many_models_predict_results(basis_param_dict, prediction_model_
 
                 death_model_dict['model_list'] = np.array(death_model_dict['model_list'])
                 remove_model_num = len(death_model_dict['model_list'])
-
-
-                add_model_list = random_select_models(prediction_model_list, remove_model_num)
-
-
-                updated_models_dict = add_model_update_probability(survival_model_dict, add_model_list, current_period, nu)
-
                 model_info_dict[f'periods_{current_period + 1}'] = {
                     'model_list': updated_models_dict['model_list'],
                     'model_age_list': updated_models_dict['model_age_list'],
@@ -806,23 +700,9 @@ def generate_single_period_predict_results(ML_model_saved_dir, running_info_save
 
                 model_dir = os.path.join(ML_model_saved_dir, f'periods_{model_born_period}', f'model_{model_type}')
                 os.makedirs(model_dir, exist_ok=True)
-
-
-                start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-
                 predict_dict, real_dict, eval_dict = get_predict_data(data_property, model_type, model_dir,  ML_predict_param_dict, Train)
-                data = predict_dict['last_data'].flatten()
-                predict_result_dict['predict_data'][model_type] = data
-
+               
                 predict_result_dict['predict_eval_scores'][model_type] = eval_dict['test']
-
-                end_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-                log_file.write(f"Data property is {data_property}, and the period is {period_item}: \n")
-                log_file.write(f"  -> Model: {model_type}, Start Time: {start_time}, End Time: {end_time}\n")
-
-                pbar.update(1)
 
     return predict_result_dict
 
@@ -973,15 +853,9 @@ def calculate_performance_eval_ratios(data_dict, structural_basis_param_dict):
 
     ESG_adjusted_rate = mean_ESG / ESG_perfect_score
 
-    if ESG_adjusted_rate < 0.33:
-        c = 1
-    elif 0.33 <= ESG_adjusted_rate < 0.67:
-        c = 2
-    else:
-        c = 3
 
-    ESG_adjusted_Sharpe_ratio = (1 + ESG_adjusted_rate) ** c * Sharpe_ratio if not np.isnan(Sharpe_ratio) else np.nan
-    ESG_adjusted_Sortino_ratio = (1 + ESG_adjusted_rate) ** c * Sortino_ratio if not np.isnan(Sortino_ratio) else np.nan
+    ESG_adjusted_Sharpe_ratio = (1 + ESG_adjusted_rate)  * Sharpe_ratio if not np.isnan(Sharpe_ratio) else np.nan
+    ESG_adjusted_Sortino_ratio = (1 + ESG_adjusted_rate) * Sortino_ratio if not np.isnan(Sortino_ratio) else np.nan
 
 
     performance_eval_ratios_dict = {'traditional_Sharpe_ratio': Sharpe_ratio, 'traditional_Sortino_ratio': Sortino_ratio,
@@ -1013,53 +887,3 @@ def calculate_partial_statistics(data_dict, riskfree_return):
     return statistics_dict
 
 
-def determine_model_group(prediction_model_list, basis_param_dict):
-
-    predict_basis_param_dict = basis_param_dict['predict_basis_param_dict']
-    ML_model_list = predict_basis_param_dict['ML_model_list']
-    DML_model_list = predict_basis_param_dict['DML_model_list']
-
-    is_ML = all(model in ML_model_list for model in prediction_model_list)
-    is_DML = all(model in DML_model_list for model in prediction_model_list)
-
-
-    if is_ML:
-        model_group = 'pure_ML'
-    elif is_DML:
-        model_group = 'pure_DML'
-    else:
-        model_group = 'Mixed'
-    return model_group
-
-
-
-def combine_selected_assets_info(basis_param_dict, select_asset_list, forward_data_dict_dict, real_observed_data_dict_dict):
-
-    structural_basis_param_dict = basis_param_dict['structural_basis_param_dict']
-    data_folder_path = basis_param_dict['path_basis_dict']['data_folder_path']
-    date_split_node_list = structural_basis_param_dict['date_split_node_list']
-    data_property_list = structural_basis_param_dict['data_property_list']
-
-
-    all_data_dict = {'forward_data': {data_property: [] for data_property in data_property_list},
-                     'real_observed_data':  {data_property: [] for data_property in data_property_list},
-                     'historical_data':  {data_property: [] for data_property in data_property_list} }
-
-    for code_item in select_asset_list:
-
-        forward_data_dict = forward_data_dict_dict[code_item]
-        real_observed_data_dict = real_observed_data_dict_dict[code_item]
-        historical_data_dict = load_historical_data(data_folder_path, date_split_node_list, code_item)
-
-        for data_property in data_property_list:
-            all_data_dict['forward_data'][data_property].append(forward_data_dict[data_property])
-            all_data_dict['real_observed_data'][data_property].append(real_observed_data_dict[data_property])
-            all_data_dict['historical_data'][data_property].append(historical_data_dict[data_property])
-
-
-    for data_category in all_data_dict:
-        for data_property in all_data_dict[data_category]:
-
-            all_data_dict[data_category][data_property] = np.array(all_data_dict[data_category][data_property]).T
-
-    return all_data_dict
