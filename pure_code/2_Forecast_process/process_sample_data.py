@@ -23,12 +23,6 @@ def create_predict_param_dict(basis_param_dict, code_item, data_property):
 
     structural_basis_param_dict = basis_param_dict['structural_basis_param_dict']
     predict_basis_param_dict = basis_param_dict['predict_basis_param_dict']
-
-    date_split_node_list = structural_basis_param_dict['date_split_node_list']
-    look_forward = structural_basis_param_dict['look_forward']
-    hyperparameter_dict = predict_basis_param_dict['hyperparameter_dict']
-    hyperparams = hyperparameter_dict[data_property]
-
     predict_param_dict_dict = {}
 
 
@@ -39,9 +33,6 @@ def create_predict_param_dict(basis_param_dict, code_item, data_property):
 
         predict_param_dict_dict[period_item] = {
             'ML_model_list': predict_basis_param_dict.get('ML_model_list', []),
-            'DML_model_list': predict_basis_param_dict.get('DML_model_list', []),
-            'plot': predict_basis_param_dict.get('plot_train', False),
-            'dim_reduction': predict_basis_param_dict.get('dim_reduction', False),
             'reduced_method': predict_basis_param_dict.get('reduced_method', None),
             'data_parameters': data_parameters_dict}
 
@@ -67,18 +58,10 @@ def create_data_parameters_dict(original_data_dict, structural_basis_param_dict,
     observed_data = current_observed_data.reshape(-1)
 
     previous_observed_data = current_data_y[-2: -1]
-    previous_observed_data = previous_observed_data.reshape(-1)
-    previous_data = np.array([previous_observed_data[0]])
-
-
-
 
     data_parameters_dict = {
         'data_x':  current_data_x,
         'data_y': current_data_y,
-        'observed_data': observed_data,
-        'previous_data': previous_data,
-
         'test_size': structural_basis_param_dict['test_size'],
         'valid_prob': structural_basis_param_dict['valid_prob'],
         'epoch': hyperparams.get('epoch'),
@@ -213,11 +196,6 @@ def generate_extended_date_split_node_list(original_file_path, observation_date_
 
 
     observation_date_split_node_list = [pd.to_datetime(date).date() for date in observation_date_split_node_list]
-
-    extended_date_split_node_list = []
-    extended_date_split_node_list.append(observation_date_split_node_list[0])
-    observation_num = len(observation_date_split_node_list)
-
     trading_dates_df = pd.read_excel(original_file_path, sheet_name='return')
     trading_dates_df['交易日期'] = pd.to_datetime(trading_dates_df['交易日期']).dt.date
 
@@ -428,71 +406,6 @@ def generate_statistics(basis_param_dict, code_list, plot_code_list):
             return df.corr(method='pearson')
         return pd.DataFrame()
 
-
-    def plot_correlation_heatmap(data, data_property, period_item, saved_dir):
-
-        df = pd.DataFrame(data)
-        correlation_matrix = df.corr(method='pearson')
-
-        plt.figure(figsize=(10, 8))
-
-
-        sns.heatmap(correlation_matrix, annot=False, cmap='coolwarm', square=True, cbar_kws={"shrink": .8}, linewidths=0.5)
-
-
-        num = period_item.split('_')[-1]
-        number = str(int(num) + 1)
-        plt.title(f'Correlation with {data_property} in period {number}', fontsize=16)
-        plt.xticks(ticks=np.arange(len(correlation_matrix.columns)) + 0.5, labels=correlation_matrix.columns, rotation=80, fontsize=11)
-        plt.yticks(ticks=np.arange(len(correlation_matrix.index)) + 0.5, labels=correlation_matrix.index, rotation=0, fontsize=11)
-        plt.tight_layout()
-
-
-        plot_file_dir = os.path.join(saved_dir, 'heatmap', f'{data_property}_{period_item}')
-        os.makedirs(plot_file_dir, exist_ok=True)
-
-        png_filename = os.path.join(plot_file_dir, 'correlation_heatmap.png')
-        pdf_filename = os.path.join(plot_file_dir, 'correlation_heatmap.pdf')
-
-
-        plt.savefig(png_filename, dpi=600, format='png')
-        plt.savefig(pdf_filename, dpi=600, format='pdf')
-
-        plt.close()
-
-
-    def plot_histogram(data_y, data_property, period_item, saved_dir, bins):
-
-        plt.figure(figsize=(10, 6))
-        plt.hist(data_y, bins=bins, color='blue', alpha=0.6, edgecolor='black')
-
-        if data_property == 'return':
-            x_label = 'Return'
-        elif data_property == 'ESG':
-            x_label = 'ESG score'
-
-
-        num = period_item.split('_')[-1]
-        number = str(int(num) + 1)
-        plt.title(f'Distribution of {x_label} in period {number}', fontsize=16)
-        plt.xlabel(x_label, fontsize=14)
-        plt.ylabel('Frequency', fontsize=14)
-        plt.tight_layout()
-
-
-        plot_file_dir = os.path.join(saved_dir, 'histogram', f'{data_property}_{period_item}')
-        os.makedirs(plot_file_dir, exist_ok=True)
-        png_filename = os.path.join(plot_file_dir, 'histogram.png')
-        pdf_filename = os.path.join(plot_file_dir, 'histogram.pdf')
-
-
-        plt.savefig(png_filename, dpi=600, format='png')
-        plt.savefig(pdf_filename, dpi=600, format='pdf')
-
-
-        plt.close()
-
-
     path_basis_dict = basis_param_dict['path_basis_dict']
     data_folder_path = path_basis_dict['data_folder_path']
     results_saved_folder_statistics = path_basis_dict['results_saved_folder_statistics']
@@ -665,6 +578,7 @@ def rename_col(code_item, data_property):
                 'log_被研报关注数': 'Log_Report' }
 
     return new_column_names
+
 
 
 
