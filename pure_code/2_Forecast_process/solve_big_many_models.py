@@ -81,14 +81,9 @@ def remove_model(models_dict, remove_model_prob):
     for i in range(len(model_list)):
         if model_list[i] in survival_model_list:
             index = survival_model_list.index(model_list[i])
-            survival_model_dict['model_list'].append(model_list[i])
-            survival_model_dict['model_age_list'].append(model_age_list[i])
-            survival_model_dict['weights_list'].append(normalized_survival_weights[index])
             survival_model_dict['indices'].append(i)
         else:
             death_model_dict['model_list'].append(model_list[i])
-            death_model_dict['model_age_list'].append(model_age_list[i])
-            death_model_dict['weights_list'].append(0)
             death_model_dict['indices'].append(i)
 
     return survival_model_dict, death_model_dict
@@ -194,6 +189,7 @@ def convert_to_probabilities(log_prob):
     prob = np.exp(log_prob)
     prob /= np.sum(prob)
     return prob
+
 
 
 
