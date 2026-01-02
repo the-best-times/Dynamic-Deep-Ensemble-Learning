@@ -62,8 +62,6 @@ def create_data_parameters_dict(original_data_dict, structural_basis_param_dict,
     data_parameters_dict = {
         'data_x':  current_data_x,
         'data_y': current_data_y,
-        'test_size': structural_basis_param_dict['test_size'],
-        'valid_prob': structural_basis_param_dict['valid_prob'],
         'epoch': hyperparams.get('epoch'),
         'batch_sizes': hyperparams.get('batch_sizes'),
         'num_components': hyperparams.get('num_components') }
@@ -332,12 +330,6 @@ def report_column_name(folder_path, code_list):
 
 
 def generate_ML_predict_params(basis_param_dict, code_list, data_property):
-
-    structural_basis_param_dict = basis_param_dict['structural_basis_param_dict']
-    date_split_node_list = structural_basis_param_dict['date_split_node_list']
-    total_periods_num = len(date_split_node_list) - 1
-
-
     ML_predict_param_dict_dict_dict = {code_item: {} for code_item in code_list}
 
     for code_item in code_list:
@@ -578,6 +570,7 @@ def rename_col(code_item, data_property):
                 'log_被研报关注数': 'Log_Report' }
 
     return new_column_names
+
 
 
 
